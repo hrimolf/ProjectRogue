@@ -389,10 +389,10 @@ void AProjectRogueCharacter::PopulatePartyInterface()
 void AProjectRogueCharacter::UpdatePartyInterface()
 {
 	TArray<UAdventurer*> Party = PartyController->GetParty();
-	for (auto& Adventurer : Party)
-	{
-		HUD->UpdatePartyMember(Adventurer);
-	}
+for (auto& Adventurer : Party)
+{
+	HUD->UpdatePartyMember(Adventurer);
+}
 }
 
 void AProjectRogueCharacter::UpdateContextSensitiveUI()
@@ -454,11 +454,11 @@ void AProjectRogueCharacter::ShowEditParty(EPartyEditType EditType)
 	check(HUD);
 	switch (EditType)
 	{
-		case EPartyEditType::Delete: Context = EContext::DeleteScreen; break;
-		case EPartyEditType::Rename: Context = EContext::RenameScreen; break;
-		case EPartyEditType::Reorder: Context = EContext::ReorderScreen; break;
+	case EPartyEditType::Delete: Context = EContext::DeleteScreen; break;
+	case EPartyEditType::Rename: Context = EContext::RenameScreen; break;
+	case EPartyEditType::Reorder: Context = EContext::ReorderScreen; break;
 	}
-	
+
 	HUD->ShowEditParty(EditType);
 }
 
@@ -488,6 +488,13 @@ void AProjectRogueCharacter::InventoryButtonClicked(UAdventurer* Adventurer)
 
 void AProjectRogueCharacter::AttackButtonClicked(UAdventurer* Adventurer)
 {
+	const float attackDelay = Adventurer->GetRemainingAttackDelay(GetWorldTimerManager());
+	if (attackDelay > 0)
+	{
+		UE_LOG(LogTemp, Display, TEXT("Unable to attack with %s, must wait %f more seconds"), *Adventurer->GetCharacterName().ToString(), attackDelay);
+		return;
+	}
+
 	UWeapon* Weapon = Cast<UWeapon>(Adventurer->GetWeapon());
 	int32 WeaponRange = MeleeRange;
 
