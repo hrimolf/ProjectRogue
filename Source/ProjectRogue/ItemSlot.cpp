@@ -33,11 +33,12 @@ void UItemSlot::Update(FItemSlotInfo InItemSlot)
         QuiverString.Append(" / " + MaxCountString);
 
         FString ItemNameString = ContainerItem->GetItemName().ToString();
-        QuiverString.Append(" " + ItemNameString + "s");
+        //QuiverString.Append(" " + ItemNameString + "s");
         
         float Value = ContainerItem->GetValue() * Count;
         FString ValueString = FString::SanitizeFloat(Value);
-        NameText->SetText(ContainerItem->GetItemName());
+
+        NameText->SetText(FText::FromString(ItemNameString + "s"));
         ValueText->SetText(FText::FromString(ValueString));
         DescriptionText->SetText(FText::FromString(QuiverString));
     }

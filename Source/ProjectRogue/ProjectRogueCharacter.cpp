@@ -258,7 +258,9 @@ void AProjectRogueCharacter::PostMove()
 	// Slither street TP
 	if (pos.Equals(FVector(1500, 1300, 44), 2.f))
 	{
-		SetActorLocation(FVector(1500, 1100, 44));
+		FVector newPos = pos;
+		newPos.Y -= 200;
+		SetActorLocation(newPos);
 	}
 
 	if (IsValid(SlitherBlocker))
@@ -640,7 +642,7 @@ void AProjectRogueCharacter::ContextButtonClicked(UAdventurer* Adventurer)
 		break;
 		case EContext::Shop: 
 		{
-			if (Adventurer->GetInventoryFreeSlots() == 0)
+			if (Adventurer->GetInventoryFreeSlots() <= 0)
 			{
 				GEngine->AddOnScreenDebugMessage(2, 2, FColor::Red, "No inventory slots available");
 				return;
@@ -873,6 +875,7 @@ void AProjectRogueCharacter::MonsterDied(AMonsterBase* Monster)
 		if (Adventurer->GetIsAlive())
 		{
 			Adventurer->AdjustXP(ExpPerPerson);
+			HUD->UpdatePartyMember(Adventurer);
 		}
 	}
 
@@ -1040,8 +1043,7 @@ void AProjectRogueCharacter::CreateAllItems()
 
 	// Shop Items
 
-	UItem* Lantern = AItemManager::AddItem<UItem>("Lantern", 1, "Use to see in the dungeon, it lasts until you leave the dungeon.");
-	Lantern->SetConsumesSpace(false);
+	UItem* Lantern = AItemManager::AddItem<UItem>("Lantern", 1, "Use to see in the dungeon.");
 
 	UConsumable* Ration = AItemManager::AddItem<UConsumable>("Ration", 1, "Use to heal 1 HP.");
 	Ration->SetUseFunction([&](UAdventurer* Adventurer) {

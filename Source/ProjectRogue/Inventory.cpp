@@ -19,10 +19,6 @@ void UInventory::RepopulateInventory(UCharacterData* InCharacter)
     for (const auto& Item : Inventory)
     {
         FText Name = Item->GetItemName();
-        
-        // M: Hack
-        if(Item->GetType() == EItemType::Container)
-            Name = FText::FromString("Quiver");
 
         FString EquippedText;
         if (InCharacter->GetWeaponIndex() == InventoryIndex || InCharacter->GetArmorIndex() == InventoryIndex)
@@ -37,6 +33,7 @@ void UInventory::RepopulateInventory(UCharacterData* InCharacter)
         {
             ItemSlot.Name = FText::FromString(Name.ToString() + EquippedText);
         }
+
         ItemSlot.Character = InCharacter;
         ItemSlot.Value = FText::FromString(FString::FromInt(Item->GetValue()));
         ItemSlot.Description = Item->GetDescription();
