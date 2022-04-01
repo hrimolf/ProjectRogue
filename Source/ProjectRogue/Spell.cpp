@@ -14,9 +14,10 @@ ASpell::ASpell()
 }
 
 //TODO: can i use move operator here? very low priority
-void ASpell::Init(AProjectRogueCharacter* InPlayer, ESpellType InType, const int32 InLevel, const int32 InManaCost, const int32 InRange, const FString& InName, const FString& InDescription, const TFunction<bool(UCharacterData*)> InCallback)
+void ASpell::Init(AProjectRogueCharacter* InPlayer, ESpellType InSpellType, ETargetType InTargetType, const int32 InLevel, const int32 InManaCost, const int32 InRange, const FString& InName, const FString& InDescription, const TFunction<bool(UCharacterData*)> InCallback)
 {
-	Type = InType;
+	Type = InSpellType;
+	TargetType = InTargetType;
 	Player = InPlayer;
 	Level = InLevel;
 	ManaCost = InManaCost;
@@ -28,7 +29,8 @@ void ASpell::Init(AProjectRogueCharacter* InPlayer, ESpellType InType, const int
 
 bool ASpell::RunCallback(UCharacterData* Character)
 {
-	checkf(Character, TEXT("Cannot run spell callback: Character is nullptr"));
+	//area spells do not require a callback target, so this assert doesnt work
+	//checkf(Character, TEXT("Cannot run spell callback: Character is nullptr"));
 	return Callback(Character);
 }
 

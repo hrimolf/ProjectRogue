@@ -299,6 +299,7 @@ public:
 	int32 GetKeyboardSelectedAdventurer() const;
 
 private:
+	bool CastSpell(ASpell* Spell, UCharacterData* SpellTarget = nullptr);
 	void CreateAllItems();
 	void CreateAllSpells();
 

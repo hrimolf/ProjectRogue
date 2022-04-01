@@ -733,52 +733,61 @@ void AProjectRogueCharacter::OnSpellCasted(ASpell* Spell)
 	if (!IsValid(SpellCaster) || SpellCaster->GetCurrentMana() < Spell->GetManaCost())
 		return;
 
-	if (Spell->GetSpellType() == ESpellType::Prayer)
+	//if its a single target spell, we have to determine how it's cast
+	if (Spell->GetTargetType() == ETargetType::Single)
 	{
-		if (HUD->IsHealMenuVisible())
+		if (Spell->GetSpellType() == ESpellType::Prayer)
 		{
-			//its a prayer, so open a submenu next to spells
-			//to determine which party member it targets
-			UAdventurer* SpellTarget = Cast<UAdventurer>(Target);
-			if (SpellTarget)
+			if (HUD->IsHealMenuVisible())
 			{
-				//do not heal the target if it is already max health
-				if (Target->GetCurrentHealth() == SpellTarget->GetMaxHealth())
-					return;
-
-				if (Spell->RunCallback(SpellTarget))
+				//its a prayer, so open a submenu next to spells
+				//to determine which party member it targets
+				UAdventurer* SpellTarget = Cast<UAdventurer>(Target);
+				if (SpellTarget)
 				{
-					SpellCaster->OnSpellCast(Spell);
-					HUD->UpdatePartyMember(SpellTarget);
-					HUD->HealCasted();
-					HUD->UpdatePartyMember(SpellCaster);
-					SpellCaster = nullptr;
+					//do not heal the target if it is already max health
+					if (Target->GetCurrentHealth() == SpellTarget->GetMaxHealth())
+						return;
+
+					//if a prayer is successfully cast, update the party member it was targeting
+					if (CastSpell(Spell, SpellTarget))
+					{
+						HUD->UpdatePartyMember(SpellTarget);
+					}
 				}
 			}
+			else
+			{
+				HUD->ShowTargetMenu(SpellCaster, Spell);
+			}
+
 		}
 		else
 		{
-			HUD->ShowTargetMenu(SpellCaster, Spell);
+			//otherwise, hit the monster in front of us
+			AMonsterBase* Monster = Cast<AMonsterBase>(HitResult.Actor);
+			if (Monster)
+			{
+				Monster->SetPlayer(this);
+				if (Monster->TakeSpellDamage(Spell))
+				{
+					SpellCaster->OnSpellCast(Spell);
+					HUD->UpdatePartyMember(SpellCaster);
+				}
+				if (Monster->IsPendingKill())
+				{
+					UpdateContextSensitiveUI();
+				}
+			}
 		}
 	}
 	else
 	{
-		//otherwise, hit the monster in front of us
-		AMonsterBase* Monster = Cast<AMonsterBase>(HitResult.Actor);
-		if (Monster)
-		{
-			Monster->SetPlayer(this);
-			if (Monster->TakeSpellDamage(Spell))
-			{
-				SpellCaster->OnSpellCast(Spell);
-				HUD->UpdatePartyMember(SpellCaster);
-			}
-			if (Monster->IsPendingKill())
-			{
-				UpdateContextSensitiveUI();
-			}
-		}
+		//if its an area spell, we can just cast it
+		//we dont have to care if its a mage or cleric spell because the spell handles the functionality
+		CastSpell(Spell);
 	}
+
 }
 
 void AProjectRogueCharacter::SetContext(EContext NewContext)
@@ -1233,7 +1242,7 @@ void AProjectRogueCharacter::CreateAllSpells()
 	ASpell* LightningBolt = pWorld->SpawnActor<ASpell>();
 	ASpell* RagingInferno = pWorld->SpawnActor<ASpell>();
 
-	Pain->Init(this, ESpellType::Spell, 1, 1, 1, "Pain", "Damage one enemy 1d4.",
+	Pain->Init(this, ESpellType::Spell, ETargetType::Single, 1, 1, 1, "Pain", "Damage one enemy 1d4.",
 		[](UCharacterData* Character)
 		{
 			//T: in the event that enemies arent removed when they die, verify they are alive
@@ -1245,7 +1254,7 @@ void AProjectRogueCharacter::CreateAllSpells()
 			Character->OnTakeDamage(DiceBag->Roll());
 			return true;
 		});
-	Fireball->Init(this, ESpellType::Spell, 2, 2, 2, "Fireball", "Damage one enemy for 1d8.",
+	Fireball->Init(this, ESpellType::Spell, ETargetType::Single, 2, 2, 2, "Fireball", "Damage one enemy for 1d8.",
 		[](UCharacterData* Character)
 		{
 			if (Character->GetCurrentHealth() == 0)
@@ -1256,7 +1265,7 @@ void AProjectRogueCharacter::CreateAllSpells()
 			Character->OnTakeDamage(DiceBag->Roll());
 			return true;
 		});
-	LightningBolt->Init(this, ESpellType::Spell, 3, 3, 3, "LightningBolt", "Damage one enemy for 1d12.",
+	LightningBolt->Init(this, ESpellType::Spell, ETargetType::Single, 3, 3, 3, "LightningBolt", "Damage one enemy for 1d12.",
 		[](UCharacterData* Character)
 		{
 			if (Character->GetCurrentHealth() == 0)
@@ -1267,7 +1276,7 @@ void AProjectRogueCharacter::CreateAllSpells()
 			Character->OnTakeDamage(DiceBag->Roll());
 			return true;
 		});
-	RagingInferno->Init(this, ESpellType::Spell, 4, 4, 3, "RagingInferno", "Damage all enemies for 1d8.",
+	RagingInferno->Init(this, ESpellType::Spell, ETargetType::Area, 4, 4, 3, "RagingInferno", "Damage all enemies for 1d8.",
 		[this, pWorld](UCharacterData* Character)
 		{
 			if (Character->GetCurrentHealth() == 0)
@@ -1309,7 +1318,7 @@ void AProjectRogueCharacter::CreateAllSpells()
 	ASpell* HealAll = pWorld->SpawnActor<ASpell>();
 	ASpell* RaiseDead = pWorld->SpawnActor<ASpell>();
 
-	Comfort->Init(this, ESpellType::Prayer, 1, 1, 0, "Comfort", "Heal one living hero for 1d4.",
+	Comfort->Init(this, ESpellType::Prayer, ETargetType::Single, 1, 1, 0, "Comfort", "Heal one living hero for 1d4.",
 		[](UCharacterData* Character)
 		{
 			if (Character->GetCurrentHealth() == 0)
@@ -1320,7 +1329,7 @@ void AProjectRogueCharacter::CreateAllSpells()
 			Character->RestoreHealth(DiceBag->Roll());
 			return true;
 		});
-	Heal->Init(this, ESpellType::Prayer, 2, 2, 0, "Heal", "Heal one living hero for 4d4.",
+	Heal->Init(this, ESpellType::Prayer, ETargetType::Single, 2, 2, 0, "Heal", "Heal one living hero for 4d4.",
 		[](UCharacterData* Character)
 		{
 			if (Character->GetCurrentHealth() == 0)
@@ -1331,7 +1340,7 @@ void AProjectRogueCharacter::CreateAllSpells()
 			Character->RestoreHealth(DiceBag->Roll());
 			return true;
 		});
-	Restore->Init(this, ESpellType::Prayer, 3, 3, 0, "Restore", "Heal all hit points for one living hero.",
+	Restore->Init(this, ESpellType::Prayer, ETargetType::Single, 3, 3, 0, "Restore", "Heal all hit points for one living hero.",
 		[](UCharacterData* Character)
 		{
 			if (Character->GetCurrentHealth() == 0)
@@ -1340,7 +1349,7 @@ void AProjectRogueCharacter::CreateAllSpells()
 			Character->RestoreHealth(Character->GetMaxHealth());
 			return true;
 		});
-	HealAll->Init(this, ESpellType::Prayer, 4, 4, 0, "HealAll", "Restore every living hero's hit points.",
+	HealAll->Init(this, ESpellType::Prayer, ETargetType::Area, 4, 4, 0, "HealAll", "Restore every living hero's hit points.",
 		[this](UCharacterData* Character)
 		{
 			if (Character->GetCurrentHealth() == 0)
@@ -1349,11 +1358,14 @@ void AProjectRogueCharacter::CreateAllSpells()
 			TArray<UAdventurer*> Party = GetParty();
 			for (auto Adventurer : Party)
 			{
-				Adventurer->RestoreHealth(Adventurer->GetMaxHealth());
+				if (Adventurer->GetIsAlive())
+				{
+					Adventurer->RestoreHealth(Adventurer->GetMaxHealth());
+				}
 			}
 			return true;
 		});
-	RaiseDead->Init(this, ESpellType::Prayer, 5, 5, 0, "RaiseDead", "Bring one adventurer back to life.",
+	RaiseDead->Init(this, ESpellType::Prayer, ETargetType::Single, 5, 5, 0, "RaiseDead", "Bring one adventurer back to life.",
 		[](UCharacterData* Character)
 		{
 			if (Character->GetCurrentHealth() > 0)
@@ -1411,4 +1423,17 @@ void AProjectRogueCharacter::SetKeyboardSelectedAdventurer(int32 Index)
 		Index = -1;
 	}
 	KeyboardSelectedAdventurer = Index;
+}
+
+bool AProjectRogueCharacter::CastSpell(ASpell* Spell, UCharacterData* SpellTarget)
+{
+	if (Spell->RunCallback(SpellTarget))
+	{
+		SpellCaster->OnSpellCast(Spell);
+		HUD->HealCasted();
+		HUD->UpdatePartyMember(SpellCaster);
+		SpellCaster = nullptr;
+		return true;
+	}
+	return false;
 }

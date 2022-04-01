@@ -17,6 +17,13 @@ enum class ESpellType : uint8
 	Prayer,
 };
 
+UENUM()
+enum class ETargetType : uint8
+{
+	Single,
+	Area,
+};
+
 UCLASS()
 class PROJECTROGUE_API ASpell : public AActor
 {
@@ -25,6 +32,7 @@ class PROJECTROGUE_API ASpell : public AActor
 private:
 	AProjectRogueCharacter* Player;
 	ESpellType Type;
+	ETargetType TargetType;
 	int32 Level;
 	int32 ManaCost;
 	int32 Range;
@@ -36,10 +44,11 @@ public:
 	// Sets default values for this actor's properties
 	ASpell();
 
-	void Init(AProjectRogueCharacter* InPlayer, ESpellType InType, const int32 InLevel, const int32 InManaCost, const int32 InRange, const FString& InName, const FString& InDescription, const TFunction<bool(UCharacterData*)> InCallback);
-	bool RunCallback(UCharacterData* Character);
+	void Init(AProjectRogueCharacter* InPlayer, ESpellType InSpellType, ETargetType InTargetType, const int32 InLevel, const int32 InManaCost, const int32 InRange, const FString& InName, const FString& InDescription, const TFunction<bool(UCharacterData*)> InCallback);
+	bool RunCallback(UCharacterData* Character = nullptr);
 
 	ESpellType GetSpellType() const { return Type; }
+	ETargetType GetTargetType() const { return TargetType; }
 	const int32& GetLevel() const { return Level; }
 	const int32& GetManaCost() const { return ManaCost; }
 	const int32& GetRange() const { return Range; }
