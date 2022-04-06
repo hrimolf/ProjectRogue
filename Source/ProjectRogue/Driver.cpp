@@ -1,10 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Driver.h"
-#include "ProjectRogueCharacter.h"
+#include "GameFramework/GameMode.h"
 #include "GenericPlatform/GenericPlatformMath.h"
 #include "Engine/Engine.h"
+#include "Kismet/GameplayStatics.h"
 
+#include "ProjectRogueGameMode.h"
+#include "ProjectRogueCharacter.h"
 #include "TileBase.h"
 #include "PawnPlaceHolder.h"
 
@@ -35,6 +38,12 @@ ADriver::ADriver()
 void ADriver::BeginPlay()
 {
 	Super::BeginPlay();
+
+	AGameModeBase* GameModeBase = UGameplayStatics::GetGameMode(GetWorld());
+	check(GameModeBase);
+	AProjectRogueGameMode* GameMode = Cast<AProjectRogueGameMode>(GameModeBase);
+	check(GameMode);
+	UnavailableLocations = GameMode->GetUnavailableTileLocations();
 }
 
 // Called every frame

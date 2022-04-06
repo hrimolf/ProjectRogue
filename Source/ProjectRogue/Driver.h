@@ -16,6 +16,7 @@ class PROJECTROGUE_API ADriver : public ACharacter
 {
 	GENERATED_BODY()
 protected:
+	TArray<FVector> UnavailableLocations;
 	bool bIsMoving;
 	bool bIsTurning;
 	bool bIsInRoom;
