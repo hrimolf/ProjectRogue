@@ -775,7 +775,7 @@ void AProjectRogueCharacter::OnSpellCasted(ASpell* Spell)
 			AMonsterBase* Monster = Cast<AMonsterBase>(HitResult.Actor);
 			if (Monster)
 			{
-				Monster->SetPlayer(this);
+				//TakeSpellDamage runs the callback that CastSpell would run, so we dont call CastSpell here
 				if (Monster->TakeSpellDamage(Spell))
 				{
 					SpellCaster->OnSpellCast(Spell);
