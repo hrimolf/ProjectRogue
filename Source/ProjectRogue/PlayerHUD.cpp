@@ -256,6 +256,13 @@ void UPlayerHUD::OpenMerchant(UCharacterData* Merchant)
 {
     MerchantScreen->SetVisibility(ESlateVisibility::Visible);
     MerchantScreen->RepopulateInventory(Merchant);
+
+    // M: We want to hide the ItemMenu when we enter any shop
+    ItemMenu->SetVisibility(ESlateVisibility::Hidden);
+
+    // M: Hide the inventory so the player can choose which one to open
+    InventoryScreen->SetVisibility(ESlateVisibility::Hidden);
+
     SetInputMode(EInputMode::GameAndUI);
 }
 
@@ -319,6 +326,10 @@ void UPlayerHUD::ItemSlotClicked(const FItemSlotInfo& InItemSlot, FItemSlotInfo*
 {
     if (InItemSlot.SlotType == ESlotType::Inventory)
     {
+        EContext Context = Player->GetContext();
+        if(Context == EContext::Shop || Context == EContext::Tavern)
+            return;
+
         InventoryScreen->SlotClicked(InItemSlot.InventoryIndex);
         if (OldSlot->Character && (InItemSlot.InventoryIndex == OldSlot->InventoryIndex))
         {
