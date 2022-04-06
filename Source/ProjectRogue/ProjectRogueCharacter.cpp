@@ -776,6 +776,7 @@ void AProjectRogueCharacter::OnSpellCasted(ASpell* Spell)
 			if (Monster)
 			{
 				//TakeSpellDamage runs the callback that CastSpell would run, so we dont call CastSpell here
+				Monster->SetPlayer(this);
 				if (Monster->TakeSpellDamage(Spell))
 				{
 					SpellCaster->OnSpellCast(Spell);
