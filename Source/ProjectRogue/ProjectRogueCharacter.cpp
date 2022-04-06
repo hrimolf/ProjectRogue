@@ -776,6 +776,7 @@ void AProjectRogueCharacter::OnSpellCasted(ASpell* Spell)
 			if (Monster)
 			{
 				//TakeSpellDamage runs the callback that CastSpell would run, so we dont call CastSpell here
+				Monster->SetPlayer(this);
 				if (Monster->TakeSpellDamage(Spell))
 				{
 					SpellCaster->OnSpellCast(Spell);
@@ -840,7 +841,21 @@ void AProjectRogueCharacter::ItemSlotClicked(const FItemSlotInfo& InItemSlot)
 		MerchantInventoryIndex = InItemSlot.InventoryIndex;
 	}
 	HUD->ItemSlotClicked(InItemSlot, &ClickedSlot);
-	ClickedSlot = InItemSlot;
+
+	//if we are clicking an inventory slot
+	if (InItemSlot.SlotType == ESlotType::Inventory)
+	{
+		//we only update the last clicked slot in these contexts
+		if (Context == EContext::None || Context == EContext::Review || Context == EContext::Loot)
+		{
+			ClickedSlot = InItemSlot;
+		}
+	}
+	else
+	{
+		//if we are clicking a slot that's not in the inventory, update it as the last slot clicked
+		ClickedSlot = InItemSlot;
+	}
 }
 
 void AProjectRogueCharacter::DropSelectedItem()

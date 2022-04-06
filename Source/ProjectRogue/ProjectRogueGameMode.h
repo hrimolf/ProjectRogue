@@ -68,6 +68,8 @@ public:
 	//T: this is used by Room to spawn a random town monster
 	TSubclassOf<AMonsterBase> GetRandomTownMonster() const;
 
+	const TArray<FVector>& GetUnavailableTileLocations() const { return UnavailableTileLocations; }
+
 	UFUNCTION(BlueprintCallable)
 	void RespawnDungeon();
 private:

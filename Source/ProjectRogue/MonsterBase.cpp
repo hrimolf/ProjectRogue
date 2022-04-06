@@ -277,6 +277,14 @@ void AMonsterBase::TakeAction()
 		//if this is an dungeon monster
 		if (bDoesMove)
 		{
+			//prevent the 
+			for (const auto& Location : UnavailableLocations)
+			{
+				if (EndPos == Location)
+				{
+					return;
+				}
+			}
 			//move up to player
 			if (TryMove(true))
 			{
