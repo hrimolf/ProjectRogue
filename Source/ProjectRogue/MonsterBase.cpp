@@ -283,6 +283,8 @@ void AMonsterBase::TakeAction()
 				if (EndPos.Equals(Location, 50.f))
 				{
 					UE_LOG(LogTemp, Display, TEXT("%s walked into unavailable location %f, %f, %f"), *GetName(), Location.X, Location.Y, Location.Z);
+					Rotate();
+					Rotate();
 					return;
 				}
 			}
