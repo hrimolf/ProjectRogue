@@ -139,7 +139,7 @@ bool AProjectRogueGameMode::CheckIsAvailable(const FVector& TraceEnd)
 {
 	for (const auto& Location : UnavailableTileLocations)
 	{
-		if (TraceEnd == Location)
+		if (TraceEnd.Equals(Location, 50.f))
 		{
 			return false;
 		}
