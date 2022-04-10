@@ -277,11 +277,12 @@ void AMonsterBase::TakeAction()
 		//if this is an dungeon monster
 		if (bDoesMove)
 		{
-			//prevent the 
+			//prevent the monster from walking into unavailable locations
 			for (const auto& Location : UnavailableLocations)
 			{
 				if (EndPos == Location)
 				{
+					UE_LOG(LogTemp, Display, TEXT("%s walked into unavailable location %f, %f, %f"), *GetName(), Location.X, Location.Y, Location.Z);
 					return;
 				}
 			}
