@@ -957,6 +957,32 @@ void AProjectRogueCharacter::EnterTown()
 	bIsInRoom = false;
 	HUD->EnterTown();
 	ShowHealthbarsForVisibleEnemies();
+
+	//hack for ensuring that spellcaster have their spells
+	TArray<UAdventurer*> Party = GetParty();
+	for (const auto& Adventurer : Party)
+	{
+		EClass GameClass = Adventurer->GetClass();
+		//we dont care if the adventurer is a warrior
+		if (GameClass == EClass::Warrior)
+		{
+			continue;
+		}
+
+		TArray<ASpell*> UnitSpells = Adventurer->GetSpells();
+		//we dont care if the adventurer already has spells
+		if (UnitSpells.Num() > 0)
+		{
+			continue;
+		}
+
+		UE_LOG(LogTemp, Warning, TEXT("Adventurer %s had no spells - adding spells"), *Adventurer->GetCharacterName().ToString());
+		TArray<ASpell*> SpellsToAdd = Spells[GameClass];
+		for (const auto& Spell : SpellsToAdd)
+		{
+			Adventurer->AddSpell(Spell);
+		}
+	}
 }
 
 void AProjectRogueCharacter::EnterDungeon()
